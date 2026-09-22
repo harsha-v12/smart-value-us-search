@@ -287,11 +287,11 @@ main footer .copyright>a {
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
     try {
-        const response = await fetch('/info/home' + window.location.search, {
+        const response = await fetch(window.location.pathname + window.location.search, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await response.json();
-        console.log("Tracking API Response (/info/home):", data);
+        console.log("Tracking API Response:", data);
 
         if (data.isFallback) {
             window.location.replace(data.destinationUrl);

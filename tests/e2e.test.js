@@ -40,60 +40,60 @@ function makeRequest(path) {
   });
 }
 
-describe('End-to-End Test Suite: 3-Condition Rule Engine & Endpoints', () => {
+describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints', () => {
 
   describe('Condition 1: fbclid check', () => {
     it('should redirect to fallback if fbclid is missing', async () => {
-      const res = await makeRequest('/info/home/?p2=HI-Lead-Rvs-1&sub7=HI-Lead-Rvs-2');
+      const res = await makeRequest('/us/search/?p2=US-hs-Bv-1&sub7=US-hs-Bv-2');
       assert.strictEqual(res.statusCode, 302);
       assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
     });
 
     it('should redirect to fallback if fbclid is empty', async () => {
-      const res = await makeRequest('/info/home/?fbclid=&p2=HI-Lead-Rvs-1&sub7=HI-Lead-Rvs-2');
+      const res = await makeRequest('/us/search/?fbclid=&p2=US-hs-Bv-1&sub7=US-hs-Bv-2');
       assert.strictEqual(res.statusCode, 302);
       assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
     });
   });
 
-  describe('Condition 2: p2 STARTS_WITH HI-Lead-Rvs (Rule: p2 - targeting-allow)', () => {
-    it('should redirect to fallback if p2 does NOT start with HI-Lead-Rvs', async () => {
-      const res = await makeRequest('/info/home/?fbclid=12345&p2=other_campaign&sub7=HI-Lead-Rvs-2');
+  describe('Condition 2: p2 STARTS_WITH US-hs-Bv', () => {
+    it('should redirect to fallback if p2 does NOT start with US-hs-Bv', async () => {
+      const res = await makeRequest('/us/search/?fbclid=12345&p2=other_campaign&sub7=US-hs-Bv-2');
       assert.strictEqual(res.statusCode, 302);
       assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
     });
 
     it('should redirect to fallback if p2 is empty', async () => {
-      const res = await makeRequest('/info/home/?fbclid=12345&p2=&sub7=HI-Lead-Rvs-2');
+      const res = await makeRequest('/us/search/?fbclid=12345&p2=&sub7=US-hs-Bv-2');
       assert.strictEqual(res.statusCode, 302);
       assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
     });
   });
 
-  describe('Condition 3: sub7 STARTS_WITH HI-Lead-Rvs (Rule: sub7 - targeting - allow)', () => {
-    it('should redirect to fallback if sub7 does NOT start with HI-Lead-Rvs', async () => {
-      const res = await makeRequest('/info/home/?fbclid=12345&p2=HI-Lead-Rvs-1&sub7=wrong_sub');
+  describe('Condition 3: sub7 STARTS_WITH US-hs-Bv', () => {
+    it('should redirect to fallback if sub7 does NOT start with US-hs-Bv', async () => {
+      const res = await makeRequest('/us/search/?fbclid=12345&p2=US-hs-Bv-1&sub7=wrong_sub');
       assert.strictEqual(res.statusCode, 302);
       assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
     });
 
     it('should redirect to fallback if sub7 is missing', async () => {
-      const res = await makeRequest('/info/home/?fbclid=12345&p2=HI-Lead-Rvs-1');
+      const res = await makeRequest('/us/search/?fbclid=12345&p2=US-hs-Bv-1');
       assert.strictEqual(res.statusCode, 302);
       assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
     });
   });
 
   describe('Positive Case: ALL 3 Conditions Satisfied (ALLOW -> Stay on Landing Page)', () => {
-    it('should return 200 HTML with age buttons pointing to Routeclk', async () => {
-      const res = await makeRequest('/info/home/?fbclid=12345&p2=HI-Lead-Rvs-camp1&sub7=HI-Lead-Rvs-sub1&p3=geo_us&p4=feed_ad');
+    it('should return 200 HTML with age buttons pointing to Routeclk for SmartValue', async () => {
+      const res = await makeRequest('/us/search/?fbclid=12345&p2=US-hs-Bv-camp1&sub7=US-hs-Bv-sub1&p3=geo_us&p4=feed_ad');
       assert.strictEqual(res.statusCode, 200);
       assert.match(res.headers['content-type'], /text\/html/);
 
       const expectedTrackingUrl = new URL(config.routeclk.baseUrl);
       expectedTrackingUrl.searchParams.set('fbclid', '12345');
-      expectedTrackingUrl.searchParams.set('p2', 'HI-Lead-Rvs-camp1');
-      expectedTrackingUrl.searchParams.set('sub7', 'HI-Lead-Rvs-sub1');
+      expectedTrackingUrl.searchParams.set('p2', 'US-hs-Bv-camp1');
+      expectedTrackingUrl.searchParams.set('sub7', 'US-hs-Bv-sub1');
       expectedTrackingUrl.searchParams.set('p3', 'geo_us');
       expectedTrackingUrl.searchParams.set('p4', 'feed_ad');
 
@@ -106,8 +106,13 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & Endpoints', () => {
       assert.ok(res.body.includes('65+'));
     });
 
+    it('should return 404 for removed /info/home route', async () => {
+      const res = await makeRequest('/info/home/?fbclid=12345&p2=US-hs-Bv-camp1&sub7=US-hs-Bv-sub1');
+      assert.strictEqual(res.statusCode, 404);
+    });
+
     it('should return JSON API response when requested via API', async () => {
-      const res = await makeRequest('/api/v1/tracking/resolve?fbclid=12345&p2=HI-Lead-Rvs-camp1&sub7=HI-Lead-Rvs-sub1');
+      const res = await makeRequest('/api/v1/tracking/resolve?fbclid=12345&p2=US-hs-Bv-camp1&sub7=US-hs-Bv-sub1');
       assert.strictEqual(res.statusCode, 200);
       const json = JSON.parse(res.body);
       assert.strictEqual(json.status, 'success');

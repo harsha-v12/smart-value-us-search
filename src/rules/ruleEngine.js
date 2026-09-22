@@ -16,7 +16,18 @@ const UNRESOLVED_CAMPAIGN_MACROS = [
   '%7b%7bsub7%7d%7d',
 ];
 
-const REQUIRED_PREFIX = 'HI-Lead-Rvs';
+const REQUIRED_PREFIXES = (process.env.REQUIRED_PREFIX || 'US-hs-Bv')
+  .split(',')
+  .map(p => p.trim().toLowerCase());
+
+/**
+ * Checks if a string starts with any of the allowed prefixes (e.g. US-hs-Bv, HI-Lead-Rvs).
+ */
+function hasValidPrefix(str) {
+  if (!str || typeof str !== 'string') return false;
+  const lower = str.trim().toLowerCase();
+  return REQUIRED_PREFIXES.some(prefix => lower.startsWith(prefix));
+}
 
 /**
  * Validates fbclid parameter.
@@ -69,8 +80,8 @@ function evaluateP2Rule(p2) {
     };
   }
 
-  // Must START WITH 'HI-Lead-Rvs' (case-insensitive for safety)
-  if (!trimmedP2.toLowerCase().startsWith(REQUIRED_PREFIX.toLowerCase())) {
+  // Must START WITH allowed prefix (US-hs-Bv for SmartValue, HI-Lead-Rvs for SecureSavings)
+  if (!hasValidPrefix(trimmedP2)) {
     return {
       isDenied: true,
       reason: 'p2_prefix_mismatch',
@@ -85,7 +96,7 @@ function evaluateP2Rule(p2) {
 
 /**
  * Evaluates SUB7 parameter.
- * Rule 'sub7 - targeting - allow': ALLOW only if STARTS_WITH 'HI-Lead-Rvs'
+ * Rule: ALLOW only if STARTS_WITH 'US-hs-Bv' (or 'HI-Lead-Rvs')
  * 
  * @param {string|null|undefined} sub7 - The sub7 / SUB7 parameter value
  * @returns {{ isDenied: boolean, reason: string | null }} Rule evaluation result
@@ -108,8 +119,8 @@ function evaluateSub7Rule(sub7) {
     };
   }
 
-  // Must START WITH 'HI-Lead-Rvs' (case-insensitive for safety)
-  if (!trimmedSub7.toLowerCase().startsWith(REQUIRED_PREFIX.toLowerCase())) {
+  // Must START WITH allowed prefix (US-hs-Bv for SmartValue, HI-Lead-Rvs for SecureSavings)
+  if (!hasValidPrefix(trimmedSub7)) {
     return {
       isDenied: true,
       reason: 'sub7_prefix_mismatch',
@@ -176,7 +187,9 @@ function validateTrackingParams(query = {}) {
 }
 
 module.exports = {
-  REQUIRED_PREFIX,
+  REQUIRED_PREFIXES,
+  REQUIRED_PREFIX: REQUIRED_PREFIXES[0],
+  hasValidPrefix,
   evaluateFbclidRule,
   evaluateP2Rule,
   evaluateSub7Rule,

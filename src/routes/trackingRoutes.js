@@ -3,10 +3,10 @@ const TrackingController = require('../controllers/trackingController');
 
 const router = express.Router();
 
-// Landing Page Route (/, /info/home, and /info/home/)
+// Landing Page Routes (SmartValue)
 router.get('/', TrackingController.handleLandingPage);
-router.get('/info/home', TrackingController.handleLandingPage);
-router.get('/info/home/', TrackingController.handleLandingPage);
+router.get('/us/search', TrackingController.handleLandingPage);
+router.get('/us/search/', TrackingController.handleLandingPage);
 
 // Direct Redirect Endpoints (HTTP 302)
 router.get('/click', TrackingController.handleRedirect);

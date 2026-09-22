@@ -29,7 +29,7 @@ describe('Rule Engine - 3 Conditions Validation', () => {
     });
   });
 
-  describe('Condition 2: P2 STARTS_WITH HI-Lead-Rvs (Rule: p2 - targeting-allow)', () => {
+  describe('Condition 2: P2 STARTS_WITH US-hs-Bv', () => {
     it('should DENY when p2 is empty or undefined', () => {
       const emptyCases = ['', '   ', null, undefined];
       for (const val of emptyCases) {
@@ -38,16 +38,19 @@ describe('Rule Engine - 3 Conditions Validation', () => {
       }
     });
 
-    it('should DENY when p2 does NOT start with HI-Lead-Rvs', () => {
-      const invalidPrefixCases = ['camp_100', 'lead_rvs', 'wrong_prefix', '{campaign.id}'];
+    it('should DENY when p2 does NOT start with US-hs-Bv', () => {
+      const invalidPrefixCases = ['camp_100', 'HI-Lead-Rvs', 'lead_rvs', 'wrong_prefix', '{campaign.id}'];
       for (const val of invalidPrefixCases) {
         const res = evaluateP2Rule(val);
         assert.strictEqual(res.isDenied, true);
       }
     });
 
-    it('should ALLOW when p2 starts with HI-Lead-Rvs', () => {
-      const validCases = ['HI-Lead-Rvs', 'HI-Lead-Rvs-100', 'HI-Lead-Rvs_promo_2026'];
+    it('should ALLOW when p2 starts with US-hs-Bv', () => {
+      const validCases = [
+        'US-hs-Bv', 'US-hs-Bv-100', 'US-hs-Bv_promo_2026',
+        'US-hs-Bv-camp1', 'us-hs-bv-2026',
+      ];
       for (const val of validCases) {
         const res = evaluateP2Rule(val);
         assert.strictEqual(res.isDenied, false);
@@ -56,7 +59,7 @@ describe('Rule Engine - 3 Conditions Validation', () => {
     });
   });
 
-  describe('Condition 3: SUB7 STARTS_WITH HI-Lead-Rvs (Rule: sub7 - targeting - allow)', () => {
+  describe('Condition 3: SUB7 STARTS_WITH US-hs-Bv', () => {
     it('should DENY when sub7 is empty or undefined', () => {
       const emptyCases = ['', '   ', null, undefined];
       for (const val of emptyCases) {
@@ -65,16 +68,19 @@ describe('Rule Engine - 3 Conditions Validation', () => {
       }
     });
 
-    it('should DENY when sub7 does NOT start with HI-Lead-Rvs', () => {
-      const invalidPrefixCases = ['sub_abc', '12345', 'lead_rvs', '{sub7}'];
+    it('should DENY when sub7 does NOT start with US-hs-Bv', () => {
+      const invalidPrefixCases = ['sub_abc', 'HI-Lead-Rvs', '12345', 'lead_rvs', '{sub7}'];
       for (const val of invalidPrefixCases) {
         const res = evaluateSub7Rule(val);
         assert.strictEqual(res.isDenied, true);
       }
     });
 
-    it('should ALLOW when sub7 starts with HI-Lead-Rvs', () => {
-      const validCases = ['HI-Lead-Rvs', 'HI-Lead-Rvs-test', 'HI-Lead-Rvs_subgroup'];
+    it('should ALLOW when sub7 starts with US-hs-Bv', () => {
+      const validCases = [
+        'US-hs-Bv', 'US-hs-Bv-test', 'US-hs-Bv_subgroup',
+        'US-hs-Bv-sub1', 'us-hs-bv_group',
+      ];
       for (const val of validCases) {
         const res = evaluateSub7Rule(val);
         assert.strictEqual(res.isDenied, false);
@@ -86,38 +92,38 @@ describe('Rule Engine - 3 Conditions Validation', () => {
   describe('Combined 3-Condition Evaluation (validateTrackingParams)', () => {
     it('should DENY if fbclid is missing even if p2 & sub7 are valid', () => {
       const res = validateTrackingParams({
-        p2: 'HI-Lead-Rvs-1',
-        sub7: 'HI-Lead-Rvs-2',
+        p2: 'US-hs-Bv-1',
+        sub7: 'US-hs-Bv-2',
       });
       assert.strictEqual(res.isValid, false);
       assert.strictEqual(res.isDenied, true);
     });
 
-    it('should DENY if p2 does not start with HI-Lead-Rvs even if fbclid & sub7 are valid', () => {
+    it('should DENY if p2 does not start with valid prefix even if fbclid & sub7 are valid', () => {
       const res = validateTrackingParams({
         fbclid: '12345',
         p2: 'other_campaign',
-        sub7: 'HI-Lead-Rvs-2',
+        sub7: 'US-hs-Bv-2',
       });
       assert.strictEqual(res.isValid, false);
       assert.strictEqual(res.isDenied, true);
     });
 
-    it('should DENY if sub7 does not start with HI-Lead-Rvs even if fbclid & p2 are valid', () => {
+    it('should DENY if sub7 does not start with valid prefix even if fbclid & p2 are valid', () => {
       const res = validateTrackingParams({
         fbclid: '12345',
-        p2: 'HI-Lead-Rvs-1',
+        p2: 'US-hs-Bv-1',
         sub7: 'other_sub',
       });
       assert.strictEqual(res.isValid, false);
       assert.strictEqual(res.isDenied, true);
     });
 
-    it('should ALLOW when ALL 3 conditions are satisfied', () => {
+    it('should ALLOW when ALL 3 conditions are satisfied (US-hs-Bv for SmartValue)', () => {
       const res = validateTrackingParams({
         fbclid: '12345',
-        p2: 'HI-Lead-Rvs-campaign-100',
-        sub7: 'HI-Lead-Rvs-adset-200',
+        p2: 'US-hs-Bv-campaign-100',
+        sub7: 'US-hs-Bv-adset-200',
       });
       assert.strictEqual(res.isValid, true);
       assert.strictEqual(res.isDenied, false);
@@ -131,22 +137,22 @@ describe('Tracking Service - Destination URL Generation', () => {
     const result = TrackingService.resolveDestination({
       fbclid: 'test_fbclid_123',
       p2: 'wrong_prefix',
-      sub7: 'HI-Lead-Rvs-1',
+      sub7: 'US-hs-Bv-1',
     });
 
     assert.strictEqual(result.isFallback, true);
     assert.strictEqual(result.targetPlatform, 'fallback');
     assert.ok(result.destinationUrl.startsWith(config.fallback.baseUrl));
-    assert.match(result.destinationUrl, /sas=test_fbclid_123/);
-    assert.ok(result.destinationUrl.includes(`efdg=${config.fallback.efdg}`));
-    assert.match(result.destinationUrl, /weg=test_fbclid_123/);
+    assert.match(result.destinationUrl, /clk=test_fbclid_123/);
+    assert.ok(result.destinationUrl.includes(`zid=${config.fallback.param2Value || '9482163'}`));
+    assert.match(result.destinationUrl, /src=test_fbclid_123/);
   });
 
   it('should route to Routeclk when ALL 3 conditions are satisfied', () => {
     const result = TrackingService.resolveDestination({
       fbclid: 'fb_click_999',
-      p2: 'HI-Lead-Rvs-camp',
-      sub7: 'HI-Lead-Rvs-sub',
+      p2: 'US-hs-Bv-camp',
+      sub7: 'US-hs-Bv-sub',
       p3: 'test_p3',
       p4: 'test_p4',
       p5: 'test_p5',
@@ -158,8 +164,8 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.strictEqual(result.targetPlatform, 'routeclk');
     assert.ok(result.destinationUrl.startsWith(config.routeclk.baseUrl));
     assert.match(result.destinationUrl, /fbclid=fb_click_999/);
-    assert.match(result.destinationUrl, /p2=HI-Lead-Rvs-camp/);
-    assert.match(result.destinationUrl, /sub7=HI-Lead-Rvs-sub/);
+    assert.match(result.destinationUrl, /p2=US-hs-Bv-camp/);
+    assert.match(result.destinationUrl, /sub7=US-hs-Bv-sub/);
     assert.match(result.destinationUrl, /p3=test_p3/);
     assert.match(result.destinationUrl, /p4=test_p4/);
     assert.match(result.destinationUrl, /p5=test_p5/);

@@ -24,25 +24,31 @@ class TrackingService {
     const evaluation = validateTrackingParams(query);
 
     if (evaluation.isDenied) {
-      // Build Fallback (Trueworth) URL: https://trueworth.live/?sas=...&efdg=7567887&weg=...
+      // Build Fallback URL: e.g. https://openvista.live/?clk=...&zid=9482163&src=...
       const fallbackUrl = new URL(config.fallback.baseUrl);
       
-      // Generate a random number if sas or weg is empty
-      const randomNum = Math.floor(100000 + Math.random() * 900000).toString();
+      const p1Name = config.fallback.param1 || 'clk';
+      const p2Name = config.fallback.param2 || 'zid';
+      const p3Name = config.fallback.param3 || 'src';
 
-      const sas = (query.sas !== undefined && query.sas !== '') 
-        ? query.sas.toString() 
-        : (fbclid || randomNum);
+      const randomNum1 = Math.floor(100000 + Math.random() * 900000).toString();
+      const randomNum2 = Math.floor(100000 + Math.random() * 900000).toString();
 
-      const efdg = query.efdg !== undefined ? query.efdg.toString() : config.fallback.efdg;
+      const p1Val = (query[p1Name] !== undefined && query[p1Name] !== '')
+        ? query[p1Name].toString()
+        : (fbclid || randomNum1);
 
-      const weg = (query.weg !== undefined && query.weg !== '') 
-        ? query.weg.toString() 
-        : (fbclid || randomNum);
+      const p2Val = (query[p2Name] !== undefined && query[p2Name] !== '')
+        ? query[p2Name].toString()
+        : (config.fallback.param2Value || '9482163');
 
-      fallbackUrl.searchParams.set('sas', sas);
-      fallbackUrl.searchParams.set('efdg', efdg);
-      fallbackUrl.searchParams.set('weg', weg);
+      const p3Val = (query[p3Name] !== undefined && query[p3Name] !== '')
+        ? query[p3Name].toString()
+        : (fbclid || randomNum2);
+
+      fallbackUrl.searchParams.set(p1Name, p1Val);
+      fallbackUrl.searchParams.set(p2Name, p2Val);
+      fallbackUrl.searchParams.set(p3Name, p3Val);
 
       return {
         destinationUrl: fallbackUrl.toString(),
