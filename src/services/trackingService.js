@@ -13,7 +13,8 @@ class TrackingService {
    */
   static resolveDestination(query = {}) {
     const fbclid = (query.fbclid || '').toString();
-    const p2 = (query.p2 || '').toString();
+    const ttclid = (query.ttclid || '').toString();
+    const p2 = (query.p2 || query.P2 || '').toString();
     const p3 = (query.p3 || '').toString();
     const p4 = (query.p4 || '').toString();
     const p5 = (query.p5 || '').toString();
@@ -34,9 +35,11 @@ class TrackingService {
       const randomNum1 = Math.floor(100000 + Math.random() * 900000).toString();
       const randomNum2 = Math.floor(100000 + Math.random() * 900000).toString();
 
+      const clickIdVal = fbclid || ttclid;
+
       const p1Val = (query[p1Name] !== undefined && query[p1Name] !== '')
         ? query[p1Name].toString()
-        : (fbclid || randomNum1);
+        : (clickIdVal || randomNum1);
 
       const p2Val = (query[p2Name] !== undefined && query[p2Name] !== '')
         ? query[p2Name].toString()
@@ -44,7 +47,7 @@ class TrackingService {
 
       const p3Val = (query[p3Name] !== undefined && query[p3Name] !== '')
         ? query[p3Name].toString()
-        : (fbclid || randomNum2);
+        : (clickIdVal || randomNum2);
 
       fallbackUrl.searchParams.set(p1Name, p1Val);
       fallbackUrl.searchParams.set(p2Name, p2Val);
@@ -58,8 +61,14 @@ class TrackingService {
       };
     }
 
+    // Determine Base URL (TikTok vs Facebook/SmartValue)
+    const isTikTok = (ttclid !== '') || p2.toLowerCase().startsWith('us-tik-hi-rv');
+    const selectedBaseUrl = isTikTok
+      ? (config.routeclk.tiktokBaseUrl || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/')
+      : (config.routeclk.baseUrl || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/');
+
     // Build Primary Tracking URL
-    const targetUrl = new URL(config.routeclk.baseUrl);
+    const targetUrl = new URL(selectedBaseUrl);
 
     // Only attach campaign_id / pub_id if explicitly passed or configured (not undefined / empty)
     if (query.campaign_id) {
@@ -74,9 +83,24 @@ class TrackingService {
       targetUrl.searchParams.set('pub_id', config.routeclk.pubId.toString());
     }
 
-    // Attach required valid parameters (fbclid, p2, sub7)
+    // Attach valid click IDs (ttclid for TikTok, fbclid for Meta/Facebook)
+    if (ttclid) targetUrl.searchParams.set('ttclid', ttclid);
     if (fbclid) targetUrl.searchParams.set('fbclid', fbclid);
     if (p2) targetUrl.searchParams.set('p2', p2);
+
+    // Attach sub1 before sub7 (ensuring it is not the last parameter)
+    // TikTok (tk=1) uses sub1=2876212; Facebook (fb=1) uses sub1=1253687
+    if (isTikTok) {
+      const isTkOne = query.tk !== undefined && query.tk.toString().trim() === '1';
+      if (isTkOne) {
+        targetUrl.searchParams.set('sub1', config.routeclk.tiktokSub1 || '2876212');
+      }
+    } else {
+      const isFbOne = query.fb !== undefined && query.fb.toString().trim() === '1';
+      if (isFbOne) {
+        targetUrl.searchParams.set('sub1', config.routeclk.facebookSub1 || '1253687');
+      }
+    }
 
     const sub7 = query.sub7 || query.SUB7 || query.p7 || query.P7;
     if (sub7) {

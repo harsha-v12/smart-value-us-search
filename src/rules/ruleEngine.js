@@ -16,12 +16,16 @@ const UNRESOLVED_CAMPAIGN_MACROS = [
   '%7b%7bsub7%7d%7d',
 ];
 
-const REQUIRED_PREFIXES = (process.env.REQUIRED_PREFIX || 'US-hs-Bv')
+const defaultPrefixes = ['us-hs-bv', 'us-tik-hi-rv'];
+const envPrefixes = (process.env.REQUIRED_PREFIX || '')
   .split(',')
-  .map(p => p.trim().toLowerCase());
+  .map(p => p.trim().toLowerCase())
+  .filter(Boolean);
+
+const REQUIRED_PREFIXES = Array.from(new Set([...defaultPrefixes, ...envPrefixes]));
 
 /**
- * Checks if a string starts with any of the allowed prefixes (e.g. US-hs-Bv, HI-Lead-Rvs).
+ * Checks if a string starts with any of the allowed prefixes (e.g. US-hs-Bv, US-TIK-HI-RV).
  */
 function hasValidPrefix(str) {
   if (!str || typeof str !== 'string') return false;
@@ -30,29 +34,48 @@ function hasValidPrefix(str) {
 }
 
 /**
- * Validates fbclid parameter.
+ * Validates a click ID parameter (fbclid or ttclid).
  * Must be present and non-empty.
  * 
- * @param {string|null|undefined} fbclid 
+ * @param {string|null|undefined} clickId 
+ * @param {string} paramName - Name of parameter for error reporting ('fbclid' | 'ttclid')
  * @returns {{ isDenied: boolean, reason: string | null }}
  */
-function evaluateFbclidRule(fbclid) {
-  if (!fbclid || typeof fbclid !== 'string' || fbclid.trim() === '') {
+function evaluateClickIdRule(clickId, paramName = 'fbclid') {
+  if (!clickId || typeof clickId !== 'string' || clickId.trim() === '') {
     return {
       isDenied: true,
-      reason: 'fbclid_empty',
+      reason: `${paramName}_empty`,
     };
   }
 
-  const trimmed = fbclid.trim();
+  const trimmed = clickId.trim();
   if (trimmed.startsWith('{') || UNRESOLVED_CAMPAIGN_MACROS.includes(trimmed.toLowerCase())) {
     return {
       isDenied: true,
-      reason: 'fbclid_unresolved_macro',
+      reason: `${paramName}_unresolved_macro`,
     };
   }
 
   return { isDenied: false, reason: null };
+}
+
+/**
+ * Validates fbclid parameter.
+ * @param {string|null|undefined} fbclid 
+ * @returns {{ isDenied: boolean, reason: string | null }}
+ */
+function evaluateFbclidRule(fbclid) {
+  return evaluateClickIdRule(fbclid, 'fbclid');
+}
+
+/**
+ * Validates ttclid parameter for TikTok traffic.
+ * @param {string|null|undefined} ttclid 
+ * @returns {{ isDenied: boolean, reason: string | null }}
+ */
+function evaluateTtclidRule(ttclid) {
+  return evaluateClickIdRule(ttclid, 'ttclid');
 }
 
 /**
@@ -145,20 +168,27 @@ function evaluateSub7Rule(sub7) {
  */
 function validateTrackingParams(query = {}) {
   const fbclid = query.fbclid;
+  const ttclid = query.ttclid;
   const p2 = query.p2 || query.P2;
   const sub7 = query.sub7 || query.SUB7 || query.p7 || query.P7;
 
-  // Condition 1: fbclid check
-  const fbclidEval = evaluateFbclidRule(fbclid);
-  if (fbclidEval.isDenied) {
+  // Condition 1: Click ID check (fbclid or ttclid)
+  let clickIdEval;
+  if (ttclid !== undefined && fbclid === undefined) {
+    clickIdEval = evaluateTtclidRule(ttclid);
+  } else {
+    clickIdEval = evaluateFbclidRule(fbclid);
+  }
+
+  if (clickIdEval.isDenied) {
     return {
       isValid: false,
       isDenied: true,
-      denyReason: fbclidEval.reason,
+      denyReason: clickIdEval.reason,
     };
   }
 
-  // Condition 2: p2 starts with 'HI-Lead-Rvs'
+  // Condition 2: p2 starts with allowed prefix (US-hs-Bv or US-TIK-HI-RV)
   const p2Eval = evaluateP2Rule(p2);
   if (p2Eval.isDenied) {
     return {
@@ -168,7 +198,7 @@ function validateTrackingParams(query = {}) {
     };
   }
 
-  // Condition 3: sub7 starts with 'HI-Lead-Rvs'
+  // Condition 3: sub7 starts with allowed prefix (US-hs-Bv or US-TIK-HI-RV)
   const sub7Eval = evaluateSub7Rule(sub7);
   if (sub7Eval.isDenied) {
     return {
@@ -178,7 +208,32 @@ function validateTrackingParams(query = {}) {
     };
   }
 
-  // All 3 conditions satisfied!
+  // Condition 4: Mandatory channel flag validation (TikTok requires tk=1, Facebook requires fb=1)
+  const isTikTok = (ttclid !== undefined && ttclid !== '') ||
+    (typeof p2 === 'string' && p2.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
+    (typeof sub7 === 'string' && sub7.trim().toLowerCase().startsWith('us-tik-hi-rv'));
+
+  if (isTikTok) {
+    const isTkOne = query.tk !== undefined && query.tk.toString().trim() === '1';
+    if (!isTkOne) {
+      return {
+        isValid: false,
+        isDenied: true,
+        denyReason: 'tiktok_missing_tk',
+      };
+    }
+  } else {
+    const isFbOne = query.fb !== undefined && query.fb.toString().trim() === '1';
+    if (!isFbOne) {
+      return {
+        isValid: false,
+        isDenied: true,
+        denyReason: 'facebook_missing_fb',
+      };
+    }
+  }
+
+  // All conditions satisfied!
   return {
     isValid: true,
     isDenied: false,
@@ -190,7 +245,9 @@ module.exports = {
   REQUIRED_PREFIXES,
   REQUIRED_PREFIX: REQUIRED_PREFIXES[0],
   hasValidPrefix,
+  evaluateClickIdRule,
   evaluateFbclidRule,
+  evaluateTtclidRule,
   evaluateP2Rule,
   evaluateSub7Rule,
   validateTrackingParams,
