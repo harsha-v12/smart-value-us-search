@@ -88,17 +88,17 @@ class TrackingService {
     if (fbclid) targetUrl.searchParams.set('fbclid', fbclid);
     if (p2) targetUrl.searchParams.set('p2', p2);
 
-    // Attach sub1 before sub7 (ensuring it is not the last parameter)
-    // TikTok (tk=1) uses sub1=2876212; Facebook (fb=1) uses sub1=1253687
+    // Attach p11 before sub7 (ensuring it is not the last parameter)
+    // TikTok (tk=1) uses p11=2876212; Facebook (fb=1) uses p11=1253687
     if (isTikTok) {
       const isTkOne = query.tk !== undefined && query.tk.toString().trim() === '1';
       if (isTkOne) {
-        targetUrl.searchParams.set('sub1', config.routeclk.tiktokSub1 || '2876212');
+        targetUrl.searchParams.set('p11', config.routeclk.tiktokP11 || '2876212');
       }
     } else {
       const isFbOne = query.fb !== undefined && query.fb.toString().trim() === '1';
       if (isFbOne) {
-        targetUrl.searchParams.set('sub1', config.routeclk.facebookSub1 || '1253687');
+        targetUrl.searchParams.set('p11', config.routeclk.facebookP11 || '1253687');
       }
     }
 

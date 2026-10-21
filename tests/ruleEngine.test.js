@@ -205,7 +205,7 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.match(result.destinationUrl, /src=test_fbclid_123/);
   });
 
-  it('should route Facebook traffic to Routeclk when fb=1 is present and attach sub1=1253687 before sub7', () => {
+  it('should route Facebook traffic to Routeclk when fb=1 is present and attach p11=1253687 before sub7', () => {
     const result = TrackingService.resolveDestination({
       fbclid: 'fb_click_999',
       p2: 'US-hs-Bv-camp',
@@ -223,7 +223,7 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.ok(result.destinationUrl.startsWith(config.routeclk.baseUrl));
     assert.match(result.destinationUrl, /fbclid=fb_click_999/);
     assert.match(result.destinationUrl, /p2=US-hs-Bv-camp/);
-    assert.match(result.destinationUrl, /sub1=1253687/);
+    assert.match(result.destinationUrl, /p11=1253687/);
     assert.match(result.destinationUrl, /sub7=US-hs-Bv-sub/);
     assert.match(result.destinationUrl, /p3=test_p3/);
     assert.match(result.destinationUrl, /p4=test_p4/);
@@ -231,18 +231,18 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.match(result.destinationUrl, /p6=test_p6/);
     assert.match(result.destinationUrl, /p10=test_p10/);
 
-    // Verify sub1 is positioned before sub7
-    const sub1Index = result.destinationUrl.indexOf('sub1=1253687');
+    // Verify p11 is positioned before sub7
+    const p11Index = result.destinationUrl.indexOf('p11=1253687');
     const sub7Index = result.destinationUrl.indexOf('sub7=US-hs-Bv-sub');
-    assert.ok(sub1Index !== -1, 'sub1 must be present in destinationUrl');
+    assert.ok(p11Index !== -1, 'p11 must be present in destinationUrl');
     assert.ok(sub7Index !== -1, 'sub7 must be present in destinationUrl');
-    assert.ok(sub1Index < sub7Index, 'sub1 must appear before sub7');
+    assert.ok(p11Index < sub7Index, 'p11 must appear before sub7');
 
-    // Verify sub1 is NOT the last parameter
+    // Verify p11 is NOT the last parameter
     const url = new URL(result.destinationUrl);
     const searchParamsKeys = Array.from(url.searchParams.keys());
     const lastKey = searchParamsKeys[searchParamsKeys.length - 1];
-    assert.notStrictEqual(lastKey, 'sub1', 'sub1 must NOT be the last parameter');
+    assert.notStrictEqual(lastKey, 'p11', 'p11 must NOT be the last parameter');
   });
 
   it('should route Facebook traffic to Fallback when fb=1 is missing', () => {
@@ -267,7 +267,7 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.strictEqual(resultOther.denyReason, 'facebook_missing_fb');
   });
 
-  it('should route TikTok traffic to NDk5OV82NDA1 base URL with ttclid and sub1=2876212 when tk=1', () => {
+  it('should route TikTok traffic to NDk5OV82NDA1 base URL with ttclid and p11=2876212 when tk=1', () => {
     const result = TrackingService.resolveDestination({
       ttclid: 'fb_123',
       p2: 'US-TIK-HI-RVS',
@@ -280,13 +280,13 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.ok(result.destinationUrl.startsWith('https://nav.rutorbit.com/t/NDk5OV82NDA1/'));
     assert.match(result.destinationUrl, /ttclid=fb_123/);
     assert.match(result.destinationUrl, /p2=US-TIK-HI-RVS/);
-    assert.match(result.destinationUrl, /sub1=2876212/);
+    assert.match(result.destinationUrl, /p11=2876212/);
     assert.match(result.destinationUrl, /sub7=US-TIK-HI-RVS/);
 
-    // sub1 must be before sub7
-    const sub1Pos = result.destinationUrl.indexOf('sub1=2876212');
+    // p11 must be before sub7
+    const p11Pos = result.destinationUrl.indexOf('p11=2876212');
     const sub7Pos = result.destinationUrl.indexOf('sub7=US-TIK-HI-RVS');
-    assert.ok(sub1Pos < sub7Pos, 'sub1 must appear before sub7 for TikTok traffic');
+    assert.ok(p11Pos < sub7Pos, 'p11 must appear before sub7 for TikTok traffic');
   });
 
   it('should route TikTok traffic to Fallback when tk=1 is missing', () => {

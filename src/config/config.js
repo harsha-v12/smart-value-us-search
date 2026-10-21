@@ -11,8 +11,10 @@ const config = {
   routeclk: {
     baseUrl: process.env.ROUTECLK_BASE_URL || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/',
     tiktokBaseUrl: process.env.ROUTECLK_TIKTOK_BASE_URL || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/',
-    tiktokSub1: process.env.TIKTOK_SUB1_VAL || '2876212',
-    facebookSub1: process.env.FACEBOOK_SUB1_VAL || '1253687',
+    tiktokP11: process.env.TIKTOK_P11_VAL || process.env.TIKTOK_SUB1_VAL || '2876212',
+    facebookP11: process.env.FACEBOOK_P11_VAL || process.env.FACEBOOK_SUB1_VAL || '1253687',
+    get tiktokSub1() { return this.tiktokP11; },
+    get facebookSub1() { return this.facebookP11; },
   },
 
   fallback: {

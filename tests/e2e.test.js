@@ -85,7 +85,7 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints'
   });
 
   describe('Positive Case: ALL Conditions Satisfied (ALLOW -> Stay on Landing Page)', () => {
-    it('should return 200 HTML with age buttons pointing to Routeclk for Facebook (fb=1 & sub1=1253687)', async () => {
+    it('should return 200 HTML with age buttons pointing to Routeclk for Facebook (fb=1 & p11=1253687)', async () => {
       const res = await makeRequest('/us/search/?fbclid=12345&p2=US-hs-Bv-camp1&sub7=US-hs-Bv-sub1&fb=1&p3=geo_us&p4=feed_ad');
       assert.strictEqual(res.statusCode, 200);
       assert.match(res.headers['content-type'], /text\/html/);
@@ -93,18 +93,20 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints'
       const expectedTrackingUrl = new URL(config.routeclk.baseUrl);
       expectedTrackingUrl.searchParams.set('fbclid', '12345');
       expectedTrackingUrl.searchParams.set('p2', 'US-hs-Bv-camp1');
-      expectedTrackingUrl.searchParams.set('sub1', '1253687');
+      expectedTrackingUrl.searchParams.set('p11', '1253687');
       expectedTrackingUrl.searchParams.set('sub7', 'US-hs-Bv-sub1');
       expectedTrackingUrl.searchParams.set('p3', 'geo_us');
       expectedTrackingUrl.searchParams.set('p4', 'feed_ad');
 
-      assert.ok(res.body.includes(`href="${expectedTrackingUrl.toString()}"`));
+      assert.ok(res.body.includes(expectedTrackingUrl.toString()));
       assert.ok(res.body.includes('18-24'));
       assert.ok(res.body.includes('25-34'));
       assert.ok(res.body.includes('35-44'));
       assert.ok(res.body.includes('45-54'));
       assert.ok(res.body.includes('55-64'));
       assert.ok(res.body.includes('65+'));
+      assert.ok(res.body.includes('Tap Your Age To Claim Your Refund'));
+      assert.ok(res.body.includes('NATIONAL'));
     });
 
     it('should return 404 for removed /info/home route', async () => {
@@ -119,7 +121,7 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints'
       assert.strictEqual(json.status, 'success');
       assert.strictEqual(json.isFallback, false);
       assert.strictEqual(json.targetPlatform, 'routeclk');
-      assert.ok(json.destinationUrl.includes('sub1=1253687'));
+      assert.ok(json.destinationUrl.includes('p11=1253687'));
       assert.strictEqual(json.denyReason, null);
     });
 
@@ -144,8 +146,8 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints'
       assert.strictEqual(res.statusCode, 200);
       assert.match(res.headers['content-type'], /text\/html/);
 
-      const expectedTrackingUrl = 'https://nav.rutorbit.com/t/NDk5OV82NDA1/?ttclid=fb_123&p2=US-TIK-HI-RVS&sub1=2876212&sub7=US-TIK-HI-RVS';
-      assert.ok(res.body.includes(`href="${expectedTrackingUrl}"`));
+      const expectedTrackingUrl = 'https://nav.rutorbit.com/t/NDk5OV82NDA1/?ttclid=fb_123&p2=US-TIK-HI-RVS&p11=2876212&sub7=US-TIK-HI-RVS';
+      assert.ok(res.body.includes(expectedTrackingUrl));
     });
 
     it('should return JSON destination for TikTok traffic via API when tk=1', async () => {
@@ -154,7 +156,7 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints'
       const json = JSON.parse(res.body);
       assert.strictEqual(json.status, 'success');
       assert.strictEqual(json.isFallback, false);
-      assert.strictEqual(json.destinationUrl, 'https://nav.rutorbit.com/t/NDk5OV82NDA1/?ttclid=fb_123&p2=US-TIK-HI-RVS&sub1=2876212&sub7=US-TIK-HI-RVS');
+      assert.strictEqual(json.destinationUrl, 'https://nav.rutorbit.com/t/NDk5OV82NDA1/?ttclid=fb_123&p2=US-TIK-HI-RVS&p11=2876212&sub7=US-TIK-HI-RVS');
     });
 
     it('should redirect TikTok traffic to fallback if tk=1 is missing', async () => {

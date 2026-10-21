@@ -1,5 +1,5 @@
 /**
- * Server-Side HTML Renderer for /info/home/ landing page.
+ * Server-Side HTML Renderer for landing page.
  * Sets age button URLs dynamically to the verified Routeclk tracking URL.
  */
 
@@ -10,24 +10,15 @@ function renderLandingPage(trackingUrl) {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>Financial Guide</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>National Reduction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-:root {
-    --text: #000;
-    --grey1: #7A8699;
-    --grey2: #A4A4A4;
-    --white: #fff;
-    --pColor: #004aad;
-    --pColor1: #004aad
-}
-
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box
+    -moz-box-sizing: border-box;
 }
 
 body {
@@ -35,279 +26,316 @@ body {
     font-size: 14px;
     line-height: 1.5;
     color: #000;
-    background: #efefef
-}
-
-a {
-    transition: .3s linear
-}
-
-b, strong {
-    font-weight: 600
-}
-
-header {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 10px 10px 15px;
-    flex-direction: column
-}
-
-header p {
-    margin-bottom: 15px;
-    font-size: 12px
-}
-
-header>img {
-    width: 184px
-}
-
-main {
-    display: flex;
-    flex-direction: column;
-    margin: 0 auto;
-    max-width: 800px;
-    padding: 0 15px
-}
-
-main>* {
-    width: 100%
-}
-
-main .boxes {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 30px;
-    border: 1px solid #ccc;
-    background: #fff;
-    padding: 70px 15px;
-    text-align: center
-}
-
-main .boxes .head1 {
-    font-size: 36px;
-    color: #444;
-    margin-bottom: 30px
-}
-
-main .boxes .btns {
-    width: 100%;
-    max-width: 550px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column
-}
-
-main .boxes .btns>a {
-    width: 100%;
     background: #efefef;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-decoration: none;
-    padding: 13px 15px;
-    color: #36447e;
-    font-size: 18px;
-    position: relative;
-    display: block;
-    margin: 5px 0;
-    font-weight: 600;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 15px 20px;
 }
 
-main .boxes .btns>a:not(:last-child) {
-    margin-bottom: 15px
-}
-
-main .boxes .btns>a::after {
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    content: "❯";
-    transform: translateY(-50%)
-}
-
-main .steper {
+.top-section {
     width: 100%;
-    max-width: 650px;
-    margin: 30px auto;
-    display: flex
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-main .steper>li {
+.logo {
+    font-family: Impact, "Arial Black", "Poppins", sans-serif;
+    font-size: 30px;
+    letter-spacing: 0.5px;
+    color: #000000;
+    text-align: center;
+    margin-bottom: 22px;
+    line-height: 1.2;
+}
+
+.logo .green {
+    color: #2f8541;
+}
+
+.steper {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    display: flex;
+    list-style: none;
+    padding: 0;
+}
+
+.steper>li {
     width: 25%;
     list-style: none;
     display: flex;
     flex-direction: column;
     text-align: center;
     align-items: center;
-    position: relative
+    position: relative;
 }
 
-main .steper>li>span {
-    width: 30px;
-    height: 30px;
+.steper>li>span {
+    width: 26px;
+    height: 26px;
     background: #c3c3c3;
     border-radius: 100%;
-    line-height: 30px;
+    line-height: 26px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #555;
     position: relative;
-    z-index: 1
+    z-index: 2;
+    text-align: center;
 }
 
-main .steper>li>b {
-    font-weight: normal;
+.steper>li>b {
+    font-weight: 500;
     width: 100%;
-    margin-top: 5px
+    margin-top: 6px;
+    font-size: 11px;
+    color: #555;
+    white-space: nowrap;
 }
 
-main .steper>li::before,
-main .steper>li::after {
+.steper>li::before,
+.steper>li::after {
     width: 50%;
-    height: 7px;
+    height: 5px;
     content: "";
     position: absolute;
-    top: 12px;
-    background: #c3c3c3
+    top: 11px;
+    background: #c3c3c3;
+    z-index: 1;
 }
 
-main .steper>li::before { left: 0 }
-main .steper>li::after { right: 0 }
-main .steper>li:first-child::before { display: none }
-main .steper>li:last-child::after { display: none }
+.steper>li::before { left: 0; }
+.steper>li::after { right: 0; }
+.steper>li:first-child::before { display: none; }
+.steper>li:last-child::after { display: none; }
 
-main .steper>li.active>span {
-    background: #175ba8;
-    color: #fff
+.steper>li.active>span {
+    background: #165ba8;
+    color: #fff;
 }
 
-main .steper>li.active>b {
-    color: #175ba8
+.steper>li.active>b {
+    color: #165ba8;
+    font-weight: 700;
 }
 
-main .steper>li.active::before,
-main .steper>li.active::after {
-    background: #175ba8
+.steper>li.active::before,
+.steper>li.active::after {
+    background: #165ba8;
 }
 
-main .steper>li.noRightLine::after {
-    background: #c3c3c3
+.steper>li.noRightLine::after {
+    background: #c3c3c3;
 }
 
-main footer {
-    padding: 0 0 30px;
-    font-size: 12px
+main {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: auto 0;
+    padding: 20px 0;
 }
 
-main footer p:not(:last-child) {
-    margin-bottom: 15px
+.boxes {
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+    padding: 48px 45px 44px;
+    text-align: center;
 }
 
-main footer .logos {
-    display: flex
+.boxes .head1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 28px;
+    line-height: 1.3;
 }
 
-main footer .logos>img {
-    height: 50px
+.boxes .btns {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
 }
 
-main footer .logos>img:not(:last-child) {
-    margin-right: 10px
+.boxes .btns>a {
+    width: 100%;
+    background: #efefef;
+    border: 1px solid #d5dbe3;
+    border-radius: 5px;
+    text-decoration: none;
+    padding: 13px 20px;
+    color: #173f7a;
+    font-size: 17px;
+    font-weight: 700;
+    position: relative;
+    display: block;
+    text-align: center;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-main footer .copyright {
-    font-weight: 500;
-    font-size: 13px
+.boxes .btns>a:hover {
+    background: #e2e6eb;
+    border-color: #cbd5e1;
 }
 
-main footer .copyright>* {
-    display: inline-block;
-    text-decoration: none
+.boxes .btns>a::after {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    content: "❯";
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 900;
+    color: #173f7a;
 }
 
-main footer .copyright>a {
-    color: #465e9b;
-    font-size: 14px
+footer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 10px 0 5px;
 }
 
-@media(max-width: 575px) {
-    main .boxes .head1 {
-        font-size: 24px;
-        margin-bottom: 20px
+.footer-logo {
+    font-family: Impact, "Arial Black", "Poppins", sans-serif;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+    color: #000000;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+.footer-logo .green {
+    color: #2f8541;
+}
+
+.copyright {
+    font-weight: 600;
+    font-size: 12px;
+    color: #173f7a;
+}
+
+.copyright a {
+    color: #173f7a;
+    text-decoration: none;
+}
+
+.copyright a:hover {
+    text-decoration: underline;
+}
+
+@media(max-width: 640px) {
+    .boxes {
+        padding: 35px 22px 30px;
+        max-width: 100%;
     }
-    main .boxes {
-        padding: 30px 15px
+    .boxes .head1 {
+        font-size: 21px;
+        margin-bottom: 20px;
     }
-    main .steper>li>b {
-        font-size: 11px
+    .boxes .btns>a {
+        padding: 11px 16px;
+        font-size: 15.5px;
     }
-    main .boxes .btns>a {
-        padding: 10px 15px
+    .steper {
+        max-width: 340px;
     }
-    main .boxes .btns>a:not(:last-child) {
-        margin-bottom: 10px
+    .steper>li>b {
+        font-size: 10px;
+    }
+    .logo {
+        font-size: 26px;
+        margin-bottom: 18px;
     }
 }
     </style>
 </head>
 <body>
-<main>
-    <ul class="steper">
-        <li class="active">
-            <span>1</span>
-            <b>Start</b>
-        </li>
-        <li class="active noRightLine">
-            <span>2</span>
-            <b>Select Age</b>
-        </li>
-        <li><span>3</span><b>Personalization</b></li>
-        <li><span>4</span><b>Results</b></li>
-    </ul>
+    <div class="top-section">
+        <div class="logo">NATIONAL <span class="green">REDUCTION</span></div>
 
-    <div class="boxes">
-        <p class="head1">Tap Your Age To Claim Your Refund</p>
-
-        <p class="btns">
-            <a href="${trackingUrl}" class="age-btn">18-24</a>
-            <a href="${trackingUrl}" class="age-btn">25-34</a>
-            <a href="${trackingUrl}" class="age-btn">35-44</a>
-            <a href="${trackingUrl}" class="age-btn">45-54</a>
-            <a href="${trackingUrl}" class="age-btn">55-64</a>
-            <a href="${trackingUrl}" class="age-btn">65+</a>
-        </p>
+        <ul class="steper">
+            <li class="active">
+                <span>1</span>
+                <b>Start</b>
+            </li>
+            <li class="active noRightLine">
+                <span>2</span>
+                <b>Select Age</b>
+            </li>
+            <li>
+                <span>3</span>
+                <b>Personalization</b>
+            </li>
+            <li>
+                <span>4</span>
+                <b>Results</b>
+            </li>
+        </ul>
     </div>
 
+    <main>
+        <div class="boxes">
+            <h1 class="head1">Tap Your Age To Claim Your Refund</h1>
+
+            <div class="btns">
+                <a href="${trackingUrl || '#'}" class="age-btn">18-24</a>
+                <a href="${trackingUrl || '#'}" class="age-btn">25-34</a>
+                <a href="${trackingUrl || '#'}" class="age-btn">35-44</a>
+                <a href="${trackingUrl || '#'}" class="age-btn">45-54</a>
+                <a href="${trackingUrl || '#'}" class="age-btn">55-64</a>
+                <a href="${trackingUrl || '#'}" class="age-btn">65+</a>
+            </div>
+        </div>
+    </main>
+
     <footer>
+        <div class="footer-logo">NATIONAL <span class="green">REDUCTION</span></div>
         <p class="copyright">
-            <a href="#">Terms & Conditions</a> | <a href="#">Privacy Policy</a> © <span>2026</span>
+            <a href="#">Terms & Conditions</a> | <a href="#">Privacy Policy</a> &copy; 2025
         </p>
     </footer>
-</main>
 
-<script>
-document.addEventListener("DOMContentLoaded", async function () {
-    try {
-        const response = await fetch(window.location.pathname + window.location.search, {
-            headers: { 'Accept': 'application/json' }
-        });
-        const data = await response.json();
-        console.log("Tracking API Response:", data);
+    <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            const endpoint = (window.location.pathname && window.location.pathname !== '/' && window.location.pathname !== '/home/index.html' && window.location.pathname !== '/index.html')
+                ? (window.location.pathname + window.location.search)
+                : ('/api/v1/tracking/resolve' + window.location.search);
+            const response = await fetch(endpoint, {
+                headers: { 'Accept': 'application/json' }
+            }).catch(() => fetch('/api/v1/tracking/resolve' + window.location.search, { headers: { 'Accept': 'application/json' } }));
 
-        if (data.isFallback) {
-            window.location.replace(data.destinationUrl);
-            return;
+            const data = await response.json();
+            console.log("Tracking API Response (/info/home):", data);
+
+            if (data && data.isFallback && data.destinationUrl) {
+                window.location.replace(data.destinationUrl);
+                return;
+            }
+
+            if (data && data.destinationUrl) {
+                document.querySelectorAll(".age-btn").forEach(btn => {
+                    btn.setAttribute("href", data.destinationUrl);
+                });
+            }
+        } catch (err) {
+            console.error("Tracking API Error:", err);
         }
-
-        if (data.destinationUrl) {
-            document.querySelectorAll(".age-btn").forEach(btn => {
-                btn.setAttribute("href", data.destinationUrl);
-            });
-        }
-    } catch (err) {
-        console.error("Tracking API Error:", err);
-    }
-});
-</script>
+    });
+    </script>
 </body>
 </html>`;
 }
