@@ -3,7 +3,7 @@ const TrackingController = require('../controllers/trackingController');
 
 const router = express.Router();
 
-// Landing Page Routes (SmartValue) 
+// Landing Page Routes (SmartValue)   
 router.get('/', TrackingController.handleLandingPage);
 router.get('/us/search', TrackingController.handleLandingPage);
 router.get('/us/search/', TrackingController.handleLandingPage);
