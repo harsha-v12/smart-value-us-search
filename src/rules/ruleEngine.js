@@ -16,7 +16,7 @@ const UNRESOLVED_CAMPAIGN_MACROS = [
   '%7b%7bsub7%7d%7d',
 ];
 
-const defaultPrefixes = ['us-hs-bv', 'us-tik-hi-rv'];
+const defaultPrefixes = ['us-hs-bv', 'us-tik-hi-rv', 'nw-rev-hi'];
 const envPrefixes = (process.env.REQUIRED_PREFIX || '')
   .split(',')
   .map(p => p.trim().toLowerCase())
@@ -76,6 +76,15 @@ function evaluateFbclidRule(fbclid) {
  */
 function evaluateTtclidRule(ttclid) {
   return evaluateClickIdRule(ttclid, 'ttclid');
+}
+
+/**
+ * Validates nbclid parameter for Newsbreak traffic.
+ * @param {string|null|undefined} nbclid 
+ * @returns {{ isDenied: boolean, reason: string | null }}
+ */
+function evaluateNbclidRule(nbclid) {
+  return evaluateClickIdRule(nbclid, 'nbclid');
 }
 
 /**
@@ -169,12 +178,28 @@ function evaluateSub7Rule(sub7) {
 function validateTrackingParams(query = {}) {
   const fbclid = query.fbclid;
   const ttclid = query.ttclid;
+  const nbclid = query.nbclid;
   const p2 = query.p2 || query.P2;
   const sub7 = query.sub7 || query.SUB7 || query.p7 || query.P7;
 
-  // Condition 1: Click ID check (fbclid or ttclid)
+  // Determine traffic channel
+  const isNewsbreak = (nbclid !== undefined && nbclid !== '') ||
+    (typeof p2 === 'string' && p2.trim().toLowerCase().startsWith('nw-rev-hi')) ||
+    (typeof sub7 === 'string' && sub7.trim().toLowerCase().startsWith('nw-rev-hi')) ||
+    (query.nb !== undefined);
+
+  const isTikTok = !isNewsbreak && (
+    (ttclid !== undefined && ttclid !== '') ||
+    (typeof p2 === 'string' && p2.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
+    (typeof sub7 === 'string' && sub7.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
+    (query.tk !== undefined)
+  );
+
+  // Condition 1: Click ID check (nbclid, ttclid, or fbclid)
   let clickIdEval;
-  if (ttclid !== undefined && fbclid === undefined) {
+  if (isNewsbreak) {
+    clickIdEval = evaluateNbclidRule(nbclid);
+  } else if (isTikTok) {
     clickIdEval = evaluateTtclidRule(ttclid);
   } else {
     clickIdEval = evaluateFbclidRule(fbclid);
@@ -188,7 +213,7 @@ function validateTrackingParams(query = {}) {
     };
   }
 
-  // Condition 2: p2 starts with allowed prefix (US-hs-Bv or US-TIK-HI-RV)
+  // Condition 2: p2 starts with allowed prefix (US-hs-Bv, US-TIK-HI-RV, or Nw-Rev-Hi)
   const p2Eval = evaluateP2Rule(p2);
   if (p2Eval.isDenied) {
     return {
@@ -198,7 +223,7 @@ function validateTrackingParams(query = {}) {
     };
   }
 
-  // Condition 3: sub7 starts with allowed prefix (US-hs-Bv or US-TIK-HI-RV)
+  // Condition 3: sub7 starts with allowed prefix (US-hs-Bv, US-TIK-HI-RV, or Nw-Rev-Hi)
   const sub7Eval = evaluateSub7Rule(sub7);
   if (sub7Eval.isDenied) {
     return {
@@ -208,12 +233,17 @@ function validateTrackingParams(query = {}) {
     };
   }
 
-  // Condition 4: Mandatory channel flag validation (TikTok requires tk=1, Facebook requires fb=1)
-  const isTikTok = (ttclid !== undefined && ttclid !== '') ||
-    (typeof p2 === 'string' && p2.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
-    (typeof sub7 === 'string' && sub7.trim().toLowerCase().startsWith('us-tik-hi-rv'));
-
-  if (isTikTok) {
+  // Condition 4: Mandatory channel flag validation (Newsbreak requires nb=1, TikTok requires tk=1, Facebook requires fb=1)
+  if (isNewsbreak) {
+    const isNbOne = query.nb !== undefined && query.nb.toString().trim() === '1';
+    if (!isNbOne) {
+      return {
+        isValid: false,
+        isDenied: true,
+        denyReason: 'newsbreak_missing_nb',
+      };
+    }
+  } else if (isTikTok) {
     const isTkOne = query.tk !== undefined && query.tk.toString().trim() === '1';
     if (!isTkOne) {
       return {
@@ -248,6 +278,7 @@ module.exports = {
   evaluateClickIdRule,
   evaluateFbclidRule,
   evaluateTtclidRule,
+  evaluateNbclidRule,
   evaluateP2Rule,
   evaluateSub7Rule,
   validateTrackingParams,

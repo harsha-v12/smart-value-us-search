@@ -174,6 +174,46 @@ describe('End-to-End Test Suite: 3-Condition Rule Engine & SmartValue Endpoints'
       assert.strictEqual(json.denyReason, 'tiktok_missing_tk');
       assert.strictEqual(json.targetPlatform, 'fallback');
     });
+
+    it('should handle Newsbreak traffic (nbclid + Nw-Rev-Hi + nb=1) and wire buttons to NDk0NF82NDA1 with p11=3278115', async () => {
+      const res = await makeRequest('/us/search/?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&sub7=Nw-Rev-Hi-sub1&nb=1');
+      assert.strictEqual(res.statusCode, 200);
+      assert.match(res.headers['content-type'], /text\/html/);
+
+      const expectedTrackingUrl = 'https://nav.rutorbit.com/t/NDk0NF82NDA1/?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&p11=3278115&sub7=Nw-Rev-Hi-sub1';
+      assert.ok(res.body.includes(expectedTrackingUrl));
+    });
+
+    it('should return JSON destination for Newsbreak traffic via API when nb=1', async () => {
+      const res = await makeRequest('/api/v1/tracking/resolve?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&sub7=Nw-Rev-Hi-sub1&nb=1');
+      assert.strictEqual(res.statusCode, 200);
+      const json = JSON.parse(res.body);
+      assert.strictEqual(json.status, 'success');
+      assert.strictEqual(json.isFallback, false);
+      assert.strictEqual(json.destinationUrl, 'https://nav.rutorbit.com/t/NDk0NF82NDA1/?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&p11=3278115&sub7=Nw-Rev-Hi-sub1');
+    });
+
+    it('should redirect Newsbreak traffic to fallback if nb=1 is missing', async () => {
+      const res = await makeRequest('/us/search/?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&sub7=Nw-Rev-Hi-sub1');
+      assert.strictEqual(res.statusCode, 302);
+      assert.ok(res.headers.location.startsWith(config.fallback.baseUrl));
+    });
+
+    it('should return isFallback: true via JSON API when Newsbreak traffic is missing nb=1', async () => {
+      const res = await makeRequest('/api/v1/tracking/resolve?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&sub7=Nw-Rev-Hi-sub1');
+      assert.strictEqual(res.statusCode, 200);
+      const json = JSON.parse(res.body);
+      assert.strictEqual(json.status, 'success');
+      assert.strictEqual(json.isFallback, true);
+      assert.strictEqual(json.denyReason, 'newsbreak_missing_nb');
+      assert.strictEqual(json.targetPlatform, 'fallback');
+    });
+
+    it('should direct 302 redirect to Newsbreak destination on /click when valid', async () => {
+      const res = await makeRequest('/click?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&sub7=Nw-Rev-Hi-sub1&nb=1');
+      assert.strictEqual(res.statusCode, 302);
+      assert.strictEqual(res.headers.location, 'https://nav.rutorbit.com/t/NDk0NF82NDA1/?nbclid=nb_123&p2=Nw-Rev-Hi-camp1&p11=3278115&sub7=Nw-Rev-Hi-sub1');
+    });
   });
 
   describe('Health Check Endpoint', () => {

@@ -3,6 +3,8 @@ const assert = require('node:assert');
 const config = require('../src/config/config');
 const {
   evaluateFbclidRule,
+  evaluateTtclidRule,
+  evaluateNbclidRule,
   evaluateP2Rule,
   evaluateSub7Rule,
   validateTrackingParams,
@@ -27,6 +29,21 @@ describe('Rule Engine - 3 Conditions Validation', () => {
       assert.strictEqual(res.isDenied, false);
       assert.strictEqual(res.reason, null);
     });
+
+    it('should DENY when nbclid is empty or missing', () => {
+      const emptyCases = ['', '   ', null, undefined];
+      for (const val of emptyCases) {
+        const res = evaluateNbclidRule(val);
+        assert.strictEqual(res.isDenied, true);
+        assert.strictEqual(res.reason, 'nbclid_empty');
+      }
+    });
+
+    it('should ALLOW when nbclid is a valid string', () => {
+      const res = evaluateNbclidRule('nb_valid_click_12345');
+      assert.strictEqual(res.isDenied, false);
+      assert.strictEqual(res.reason, null);
+    });
   });
 
   describe('Condition 2: P2 STARTS_WITH US-hs-Bv', () => {
@@ -46,11 +63,12 @@ describe('Rule Engine - 3 Conditions Validation', () => {
       }
     });
 
-    it('should ALLOW when p2 starts with US-hs-Bv or US-TIK-HI-RV', () => {
+    it('should ALLOW when p2 starts with US-hs-Bv, US-TIK-HI-RV, or Nw-Rev-Hi', () => {
       const validCases = [
         'US-hs-Bv', 'US-hs-Bv-100', 'US-hs-Bv_promo_2026',
         'US-hs-Bv-camp1', 'us-hs-bv-2026',
         'US-TIK-HI-RVS', 'US-TIK-HI-RV', 'US-TIK-HI-RV-campaign1', 'us-tik-hi-rv-2026',
+        'Nw-Rev-Hi', 'Nw-Rev-Hi-camp1', 'nw-rev-hi-2026', 'NW-REV-HI-123',
       ];
       for (const val of validCases) {
         const res = evaluateP2Rule(val);
@@ -77,11 +95,12 @@ describe('Rule Engine - 3 Conditions Validation', () => {
       }
     });
 
-    it('should ALLOW when sub7 starts with US-hs-Bv or US-TIK-HI-RV', () => {
+    it('should ALLOW when sub7 starts with US-hs-Bv, US-TIK-HI-RV, or Nw-Rev-Hi', () => {
       const validCases = [
         'US-hs-Bv', 'US-hs-Bv-test', 'US-hs-Bv_subgroup',
         'US-hs-Bv-sub1', 'us-hs-bv_group',
         'US-TIK-HI-RVS', 'US-TIK-HI-RV', 'US-TIK-HI-RV-sub1', 'us-tik-hi-rv-group',
+        'Nw-Rev-Hi', 'Nw-Rev-Hi-sub1', 'nw-rev-hi-group', 'NW-REV-HI-999',
       ];
       for (const val of validCases) {
         const res = evaluateSub7Rule(val);
@@ -185,6 +204,39 @@ describe('Rule Engine - 3 Conditions Validation', () => {
       assert.strictEqual(resOther.isValid, false);
       assert.strictEqual(resOther.isDenied, true);
       assert.strictEqual(resOther.denyReason, 'tiktok_missing_tk');
+    });
+
+    it('should ALLOW when ALL conditions are satisfied for Newsbreak (nbclid + Nw-Rev-Hi + nb=1)', () => {
+      const res = validateTrackingParams({
+        nbclid: 'nb_12345',
+        p2: 'Nw-Rev-Hi-camp1',
+        sub7: 'Nw-Rev-Hi-sub1',
+        nb: '1',
+      });
+      assert.strictEqual(res.isValid, true);
+      assert.strictEqual(res.isDenied, false);
+      assert.strictEqual(res.denyReason, null);
+    });
+
+    it('should DENY Newsbreak traffic when nb=1 is missing or not 1', () => {
+      const resMissing = validateTrackingParams({
+        nbclid: 'nb_12345',
+        p2: 'Nw-Rev-Hi-camp1',
+        sub7: 'Nw-Rev-Hi-sub1',
+      });
+      assert.strictEqual(resMissing.isValid, false);
+      assert.strictEqual(resMissing.isDenied, true);
+      assert.strictEqual(resMissing.denyReason, 'newsbreak_missing_nb');
+
+      const resOther = validateTrackingParams({
+        nbclid: 'nb_12345',
+        p2: 'Nw-Rev-Hi-camp1',
+        sub7: 'Nw-Rev-Hi-sub1',
+        nb: '0',
+      });
+      assert.strictEqual(resOther.isValid, false);
+      assert.strictEqual(resOther.isDenied, true);
+      assert.strictEqual(resOther.denyReason, 'newsbreak_missing_nb');
     });
   });
 });
@@ -299,6 +351,49 @@ describe('Tracking Service - Destination URL Generation', () => {
     assert.strictEqual(result.isFallback, true);
     assert.strictEqual(result.targetPlatform, 'fallback');
     assert.strictEqual(result.denyReason, 'tiktok_missing_tk');
+    assert.ok(result.destinationUrl.startsWith(config.fallback.baseUrl));
+  });
+
+  it('should route Newsbreak traffic to NDk0NF82NDA1 base URL with nbclid and p11=3278115 when nb=1', () => {
+    const result = TrackingService.resolveDestination({
+      nbclid: 'nb_click_789',
+      p2: 'Nw-Rev-Hi-camp',
+      sub7: 'Nw-Rev-Hi-sub',
+      nb: '1',
+      p3: 'test_p3',
+    });
+
+    assert.strictEqual(result.isFallback, false);
+    assert.strictEqual(result.targetPlatform, 'routeclk');
+    assert.ok(result.destinationUrl.startsWith('https://nav.rutorbit.com/t/NDk0NF82NDA1/'));
+    assert.match(result.destinationUrl, /nbclid=nb_click_789/);
+    assert.match(result.destinationUrl, /p2=Nw-Rev-Hi-camp/);
+    assert.match(result.destinationUrl, /p11=3278115/);
+    assert.match(result.destinationUrl, /sub7=Nw-Rev-Hi-sub/);
+    assert.match(result.destinationUrl, /p3=test_p3/);
+
+    // p11 must be before sub7
+    const p11Pos = result.destinationUrl.indexOf('p11=3278115');
+    const sub7Pos = result.destinationUrl.indexOf('sub7=Nw-Rev-Hi-sub');
+    assert.ok(p11Pos < sub7Pos, 'p11 must appear before sub7 for Newsbreak traffic');
+
+    // p11 must not be the last parameter
+    const url = new URL(result.destinationUrl);
+    const searchParamsKeys = Array.from(url.searchParams.keys());
+    const lastKey = searchParamsKeys[searchParamsKeys.length - 1];
+    assert.notStrictEqual(lastKey, 'p11', 'p11 must NOT be the last parameter');
+  });
+
+  it('should route Newsbreak traffic to Fallback when nb=1 is missing', () => {
+    const result = TrackingService.resolveDestination({
+      nbclid: 'nb_click_789',
+      p2: 'Nw-Rev-Hi-camp',
+      sub7: 'Nw-Rev-Hi-sub',
+    });
+
+    assert.strictEqual(result.isFallback, true);
+    assert.strictEqual(result.targetPlatform, 'fallback');
+    assert.strictEqual(result.denyReason, 'newsbreak_missing_nb');
     assert.ok(result.destinationUrl.startsWith(config.fallback.baseUrl));
   });
 });

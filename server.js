@@ -6,7 +6,7 @@ const server = app.listen(config.port, () => {
   console.log(`🚀 Tracking & Traffic Backend Running`);
   console.log(`📡 Port: ${config.port}`);
   console.log(`🌐 Environment: ${config.nodeEnv}`);
-  console.log(`🏠 Landing Page: http://localhost:${config.port}/info/home/`);
+  console.log(`🏠 Landing Page: http://localhost:${config.port}/us/search/`);
   console.log(`🔗 Primary Tracker: ${config.routeclk.baseUrl}`);
   console.log(`🛡️  Fallback: ${config.fallback.baseUrl}`);
   console.log(`=========================================`);

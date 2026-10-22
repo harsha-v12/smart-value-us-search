@@ -14,6 +14,7 @@ class TrackingService {
   static resolveDestination(query = {}) {
     const fbclid = (query.fbclid || '').toString();
     const ttclid = (query.ttclid || '').toString();
+    const nbclid = (query.nbclid || '').toString();
     const p2 = (query.p2 || query.P2 || '').toString();
     const p3 = (query.p3 || '').toString();
     const p4 = (query.p4 || '').toString();
@@ -35,7 +36,7 @@ class TrackingService {
       const randomNum1 = Math.floor(100000 + Math.random() * 900000).toString();
       const randomNum2 = Math.floor(100000 + Math.random() * 900000).toString();
 
-      const clickIdVal = fbclid || ttclid;
+      const clickIdVal = fbclid || ttclid || nbclid;
 
       const p1Val = (query[p1Name] !== undefined && query[p1Name] !== '')
         ? query[p1Name].toString()
@@ -61,11 +62,19 @@ class TrackingService {
       };
     }
 
-    // Determine Base URL (TikTok vs Facebook/SmartValue)
-    const isTikTok = (ttclid !== '') || p2.toLowerCase().startsWith('us-tik-hi-rv');
-    const selectedBaseUrl = isTikTok
-      ? (config.routeclk.tiktokBaseUrl || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/')
-      : (config.routeclk.baseUrl || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/');
+    // Determine Base URL (Newsbreak vs TikTok vs Facebook/SmartValue)
+    const p2Lower = p2.toLowerCase();
+    const isNewsbreak = (nbclid !== '') || p2Lower.startsWith('nw-rev-hi') || (query.nb !== undefined);
+    const isTikTok = !isNewsbreak && ((ttclid !== '') || p2Lower.startsWith('us-tik-hi-rv') || (query.tk !== undefined));
+
+    let selectedBaseUrl;
+    if (isNewsbreak) {
+      selectedBaseUrl = config.routeclk.newsbreakBaseUrl || 'https://nav.rutorbit.com/t/NDk0NF82NDA1/';
+    } else if (isTikTok) {
+      selectedBaseUrl = config.routeclk.tiktokBaseUrl || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/';
+    } else {
+      selectedBaseUrl = config.routeclk.baseUrl || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/';
+    }
 
     // Build Primary Tracking URL
     const targetUrl = new URL(selectedBaseUrl);
@@ -83,14 +92,20 @@ class TrackingService {
       targetUrl.searchParams.set('pub_id', config.routeclk.pubId.toString());
     }
 
-    // Attach valid click IDs (ttclid for TikTok, fbclid for Meta/Facebook)
+    // Attach valid click IDs (nbclid for Newsbreak, ttclid for TikTok, fbclid for Meta/Facebook)
+    if (nbclid) targetUrl.searchParams.set('nbclid', nbclid);
     if (ttclid) targetUrl.searchParams.set('ttclid', ttclid);
     if (fbclid) targetUrl.searchParams.set('fbclid', fbclid);
     if (p2) targetUrl.searchParams.set('p2', p2);
 
     // Attach p11 before sub7 (ensuring it is not the last parameter)
-    // TikTok (tk=1) uses p11=2876212; Facebook (fb=1) uses p11=1253687
-    if (isTikTok) {
+    // Newsbreak (nb=1) uses p11=3278115; TikTok (tk=1) uses p11=2876212; Facebook (fb=1) uses p11=1253687
+    if (isNewsbreak) {
+      const isNbOne = query.nb !== undefined && query.nb.toString().trim() === '1';
+      if (isNbOne) {
+        targetUrl.searchParams.set('p11', config.routeclk.newsbreakP11 || '3278115');
+      }
+    } else if (isTikTok) {
       const isTkOne = query.tk !== undefined && query.tk.toString().trim() === '1';
       if (isTkOne) {
         targetUrl.searchParams.set('p11', config.routeclk.tiktokP11 || '2876212');
