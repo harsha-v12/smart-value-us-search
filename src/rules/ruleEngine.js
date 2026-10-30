@@ -11,9 +11,9 @@ const UNRESOLVED_CAMPAIGN_MACROS = [
   '{campaign_id}',
   '{{campaign_id}}',
   '%7b%7bcampaign_id%7d%7d',
-  '{sub7}',
-  '{{sub7}}',
-  '%7b%7bsub7%7d%7d',
+  '{p15}',
+  '{{p15}}',
+  '%7b%7bp15%7d%7d',
 ];
 
 const defaultPrefixes = ['us-hs-bv', 'us-tik-hi-rv', 'nw-rev-hi'];
@@ -127,35 +127,35 @@ function evaluateP2Rule(p2) {
 }
 
 /**
- * Evaluates SUB7 parameter.
- * Rule: ALLOW only if STARTS_WITH 'US-hs-Bv' (or 'HI-Lead-Rvs')
+ * Evaluates P15 parameter.
+ * Rule: ALLOW only if STARTS_WITH allowed prefix (e.g. US-hs-Bv, US-TIK-HI-RV, Nw-Rev-Hi)
  * 
- * @param {string|null|undefined} sub7 - The sub7 / SUB7 parameter value
+ * @param {string|null|undefined} p15 - The p15 / P15 parameter value
  * @returns {{ isDenied: boolean, reason: string | null }} Rule evaluation result
  */
-function evaluateSub7Rule(sub7) {
-  if (!sub7 || typeof sub7 !== 'string' || sub7.trim() === '') {
+function evaluateP15Rule(p15) {
+  if (!p15 || typeof p15 !== 'string' || p15.trim() === '') {
     return {
       isDenied: true,
-      reason: 'sub7_empty',
+      reason: 'p15_empty',
     };
   }
 
-  const trimmedSub7 = sub7.trim();
+  const trimmedP15 = p15.trim();
 
   // Deny unresolved template macros or braces
-  if (trimmedSub7.startsWith('{') || UNRESOLVED_CAMPAIGN_MACROS.includes(trimmedSub7.toLowerCase())) {
+  if (trimmedP15.startsWith('{') || UNRESOLVED_CAMPAIGN_MACROS.includes(trimmedP15.toLowerCase())) {
     return {
       isDenied: true,
-      reason: 'sub7_unresolved_macro',
+      reason: 'p15_unresolved_macro',
     };
   }
 
-  // Must START WITH allowed prefix (US-hs-Bv for SmartValue, HI-Lead-Rvs for SecureSavings)
-  if (!hasValidPrefix(trimmedSub7)) {
+  // Must START WITH allowed prefix (US-hs-Bv for SmartValue, US-TIK-HI-RV for TikTok, Nw-Rev-Hi for Newsbreak)
+  if (!hasValidPrefix(trimmedP15)) {
     return {
       isDenied: true,
-      reason: 'sub7_prefix_mismatch',
+      reason: 'p15_prefix_mismatch',
     };
   }
 
@@ -167,10 +167,11 @@ function evaluateSub7Rule(sub7) {
 
 /**
  * Validates request tracking parameters.
- * ALL 3 CONDITIONS MUST BE SATISFIED TO ALLOW:
- * 1. fbclid must be present & valid.
- * 2. p2 must start with 'HI-Lead-Rvs'.
- * 3. sub7 must start with 'HI-Lead-Rvs'.
+ * ALL 4 CONDITIONS MUST BE SATISFIED TO ALLOW:
+ * 1. Click ID (fbclid, ttclid, or nbclid) must be present & valid.
+ * 2. p2 must start with allowed prefix.
+ * 3. p15 must start with allowed prefix.
+ * 4. Channel flag (fb=1, tk=1, or nb=1) must be set.
  * 
  * @param {Object} query - Incoming query parameters
  * @returns {{ isValid: boolean, isDenied: boolean, denyReason: string | null }}
@@ -180,18 +181,18 @@ function validateTrackingParams(query = {}) {
   const ttclid = query.ttclid;
   const nbclid = query.nbclid;
   const p2 = query.p2 || query.P2;
-  const sub7 = query.sub7 || query.SUB7 || query.p7 || query.P7;
+  const p15 = query.p15 || query.P15;
 
   // Determine traffic channel
   const isNewsbreak = (nbclid !== undefined && nbclid !== '') ||
     (typeof p2 === 'string' && p2.trim().toLowerCase().startsWith('nw-rev-hi')) ||
-    (typeof sub7 === 'string' && sub7.trim().toLowerCase().startsWith('nw-rev-hi')) ||
+    (typeof p15 === 'string' && p15.trim().toLowerCase().startsWith('nw-rev-hi')) ||
     (query.nb !== undefined);
 
   const isTikTok = !isNewsbreak && (
     (ttclid !== undefined && ttclid !== '') ||
     (typeof p2 === 'string' && p2.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
-    (typeof sub7 === 'string' && sub7.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
+    (typeof p15 === 'string' && p15.trim().toLowerCase().startsWith('us-tik-hi-rv')) ||
     (query.tk !== undefined)
   );
 
@@ -223,13 +224,13 @@ function validateTrackingParams(query = {}) {
     };
   }
 
-  // Condition 3: sub7 starts with allowed prefix (US-hs-Bv, US-TIK-HI-RV, or Nw-Rev-Hi)
-  const sub7Eval = evaluateSub7Rule(sub7);
-  if (sub7Eval.isDenied) {
+  // Condition 3: p15 starts with allowed prefix (US-hs-Bv, US-TIK-HI-RV, or Nw-Rev-Hi)
+  const p15Eval = evaluateP15Rule(p15);
+  if (p15Eval.isDenied) {
     return {
       isValid: false,
       isDenied: true,
-      denyReason: sub7Eval.reason,
+      denyReason: p15Eval.reason,
     };
   }
 
@@ -280,7 +281,7 @@ module.exports = {
   evaluateTtclidRule,
   evaluateNbclidRule,
   evaluateP2Rule,
-  evaluateSub7Rule,
+  evaluateP15Rule,
   validateTrackingParams,
   UNRESOLVED_CAMPAIGN_MACROS,
 };

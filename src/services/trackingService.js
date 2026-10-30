@@ -16,6 +16,7 @@ class TrackingService {
     const ttclid = (query.ttclid || '').toString();
     const nbclid = (query.nbclid || '').toString();
     const p2 = (query.p2 || query.P2 || '').toString();
+    const p15 = (query.p15 || query.P15 || '').toString();
     const p3 = (query.p3 || '').toString();
     const p4 = (query.p4 || '').toString();
     const p5 = (query.p5 || '').toString();
@@ -69,11 +70,11 @@ class TrackingService {
 
     let selectedBaseUrl;
     if (isNewsbreak) {
-      selectedBaseUrl = config.routeclk.newsbreakBaseUrl || 'https://nav.rutorbit.com/t/NDk0NF82NDA1/';
+      selectedBaseUrl = config.routeclk.newsbreakBaseUrl || 'https://nav.rutorbit.com/t/NDk0NF82NDA1/?url_id=5';
     } else if (isTikTok) {
-      selectedBaseUrl = config.routeclk.tiktokBaseUrl || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/';
+      selectedBaseUrl = config.routeclk.tiktokBaseUrl || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/?url_id=4';
     } else {
-      selectedBaseUrl = config.routeclk.baseUrl || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/';
+      selectedBaseUrl = config.routeclk.baseUrl || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/?url_id=3';
     }
 
     // Build Primary Tracking URL
@@ -98,7 +99,7 @@ class TrackingService {
     if (fbclid) targetUrl.searchParams.set('fbclid', fbclid);
     if (p2) targetUrl.searchParams.set('p2', p2);
 
-    // Attach p11 before sub7 (ensuring it is not the last parameter)
+    // Attach p11 before p15 (ensuring it is not the last parameter)
     // Newsbreak (nb=1) uses p11=3278115; TikTok (tk=1) uses p11=2876212; Facebook (fb=1) uses p11=1253687
     if (isNewsbreak) {
       const isNbOne = query.nb !== undefined && query.nb.toString().trim() === '1';
@@ -117,9 +118,8 @@ class TrackingService {
       }
     }
 
-    const sub7 = query.sub7 || query.SUB7 || query.p7 || query.P7;
-    if (sub7) {
-      targetUrl.searchParams.set('sub7', sub7.toString());
+    if (p15) {
+      targetUrl.searchParams.set('p15', p15);
     }
 
     // Only attach p3–p6 / p10 if they are actually present and non-empty in query

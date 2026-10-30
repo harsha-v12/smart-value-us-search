@@ -9,9 +9,9 @@ const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
 
   routeclk: {
-    baseUrl: process.env.ROUTECLK_BASE_URL || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/',
-    tiktokBaseUrl: process.env.ROUTECLK_TIKTOK_BASE_URL || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/',
-    newsbreakBaseUrl: process.env.ROUTECLK_NEWSBREAK_BASE_URL || 'https://nav.rutorbit.com/t/NDk0NF82NDA1/',
+    baseUrl: process.env.ROUTECLK_BASE_URL || 'https://nav.rutorbit.com/t/NDkwNV82NDA1/?url_id=3',
+    tiktokBaseUrl: process.env.ROUTECLK_TIKTOK_BASE_URL || 'https://nav.rutorbit.com/t/NDk5OV82NDA1/?url_id=4',
+    newsbreakBaseUrl: process.env.ROUTECLK_NEWSBREAK_BASE_URL || 'https://nav.rutorbit.com/t/NDk0NF82NDA1/?url_id=5',
     tiktokP11: process.env.TIKTOK_P11_VAL || process.env.TIKTOK_SUB1_VAL || '2876212',
     facebookP11: process.env.FACEBOOK_P11_VAL || process.env.FACEBOOK_SUB1_VAL || '1253687',
     newsbreakP11: process.env.NEWSBREAK_P11_VAL || '3278115',

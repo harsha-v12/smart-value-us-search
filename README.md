@@ -10,13 +10,13 @@ Dedicated Node.js backend for parameter validation, anti-bot/macro rule targetin
   - **Missing / Empty / Macro Parameters** $\rightarrow$ Automatically 302 redirects to Openvista fallback.
   - **Valid Parameters** $\rightarrow$ Stays on the landing page, rendering the age buttons (`18-24`, `25-34`, `35-44`, etc.) wired directly with the dynamic tracking link.
 - **Multi-Channel Routing & Targeting Rules**:
-  - **Facebook**: Valid `fbclid` + `p2` & `sub7` starting with `US-hs-Bv` + `fb=1` $\rightarrow$ Routes to `https://nav.rutorbit.com/t/NDkwNV82NDA1/` with `p11=1253687`.
-  - **TikTok**: Valid `ttclid` + `p2` & `sub7` starting with `US-TIK-HI-RV` + `tk=1` $\rightarrow$ Routes to `https://nav.rutorbit.com/t/NDk5OV82NDA1/` with `p11=2876212`.
-  - **Newsbreak**: Valid `nbclid` + `p2` & `sub7` starting with `Nw-Rev-Hi` + `nb=1` $\rightarrow$ Routes to `https://nav.rutorbit.com/t/NDk0NF82NDA1/` with `p11=3278115`.
+  - **Facebook**: Valid `fbclid` + `p2` & `p15` starting with `US-hs-Bv` + `fb=1` $\rightarrow$ Routes to `https://nav.rutorbit.com/t/NDkwNV82NDA1/` with `p11=1253687`.
+  - **TikTok**: Valid `ttclid` + `p2` & `p15` starting with `US-TIK-HI-RV` + `tk=1` $\rightarrow$ Routes to `https://nav.rutorbit.com/t/NDk5OV82NDA1/` with `p11=2876212`.
+  - **Newsbreak**: Valid `nbclid` + `p2` & `p15` starting with `Nw-Rev-Hi` + `nb=1` $\rightarrow$ Routes to `https://nav.rutorbit.com/t/NDk0NF82NDA1/` with `p11=3278115`.
 - **Advanced Targeting Rules**:
   - Denies if click ID (`fbclid`, `ttclid`, or `nbclid`) is missing or empty.
   - Denies if parameters start with `{` (unresolved macro).
-  - Denies unreplaced macros (`%7B%7Bcampaign.id%7D%7D`, `{campaign.id}`, `{{sub7}}`, etc.).
+  - Denies unreplaced macros (`%7B%7Bcampaign.id%7D%7D`, `{campaign.id}`, `{{p15}}`, etc.).
   - Enforces mandatory channel flags (`fb=1`, `tk=1`, or `nb=1`).
 - **Direct 302 Redirect Support** (`GET /click` or `GET /r`).
 - **REST API Support** (`GET /api/v1/tracking/resolve`).
@@ -84,24 +84,24 @@ npm test
 ### 1. Landing Page (`GET /us/search` or `GET /`)
 - **Newsbreak Traffic**:
   ```bash
-  curl -i "http://localhost:3001/us/search/?nbclid=test_nb&p2=Nw-Rev-Hi-camp1&sub7=Nw-Rev-Hi-sub1&nb=1"
+  curl -i "http://localhost:3001/us/search/?nbclid=test_nb&p2=Nw-Rev-Hi-camp1&p15=Nw-Rev-Hi-sub1&nb=1"
   ```
   $\rightarrow$ Returns HTML (200 OK) with buttons wired to:
-  `https://nav.rutorbit.com/t/NDk0NF82NDA1/?nbclid=test_nb&p2=Nw-Rev-Hi-camp1&p11=3278115&sub7=Nw-Rev-Hi-sub1`
+  `https://nav.rutorbit.com/t/NDk0NF82NDA1/?nbclid=test_nb&p2=Nw-Rev-Hi-camp1&p11=3278115&p15=Nw-Rev-Hi-sub1`
 
 - **Facebook Traffic**:
   ```bash
-  curl -i "http://localhost:3001/us/search/?fbclid=test_fb&p2=US-hs-Bv-camp1&sub7=US-hs-Bv-sub1&fb=1"
+  curl -i "http://localhost:3001/us/search/?fbclid=test_fb&p2=US-hs-Bv-camp1&p15=US-hs-Bv-sub1&fb=1"
   ```
   $\rightarrow$ Returns HTML (200 OK) with buttons wired to:
-  `https://nav.rutorbit.com/t/NDkwNV82NDA1/?fbclid=test_fb&p2=US-hs-Bv-camp1&p11=1253687&sub7=US-hs-Bv-sub1`
+  `https://nav.rutorbit.com/t/NDkwNV82NDA1/?fbclid=test_fb&p2=US-hs-Bv-camp1&p11=1253687&p15=US-hs-Bv-sub1`
 
 - **TikTok Traffic**:
   ```bash
-  curl -i "http://localhost:3001/us/search/?ttclid=test_tk&p2=US-TIK-HI-RV-camp1&sub7=US-TIK-HI-RV-sub1&tk=1"
+  curl -i "http://localhost:3001/us/search/?ttclid=test_tk&p2=US-TIK-HI-RV-camp1&p15=US-TIK-HI-RV-sub1&tk=1"
   ```
   $\rightarrow$ Returns HTML (200 OK) with buttons wired to:
-  `https://nav.rutorbit.com/t/NDk5OV82NDA1/?ttclid=test_tk&p2=US-TIK-HI-RV-camp1&p11=2876212&sub7=US-TIK-HI-RV-sub1`
+  `https://nav.rutorbit.com/t/NDk5OV82NDA1/?ttclid=test_tk&p2=US-TIK-HI-RV-camp1&p11=2876212&p15=US-TIK-HI-RV-sub1`
 
 - **When any condition fails (unresolved macro, wrong prefix, missing channel flag)**:
   $\rightarrow$ Redirects (302) to Openvista:
